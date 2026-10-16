@@ -1,0 +1,5 @@
+name: local
+variables:
+  - name: ApiUrl
+    value: http://localhost:3001
+    description: ""
