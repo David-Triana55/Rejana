@@ -30,6 +30,8 @@
   --color-rojo-100: #fde2dc;
   --color-rojo-600: #bf3622;
   --shadow-sticker: 4px 4px 0 0 var(--color-tinta);
+  --shadow-sticker-sm: 2px 2px 0 0 var(--color-tinta);
+  --shadow-brillo: 0 0 10px 3px var(--color-amarillo);
 }
 
 @theme inline {
@@ -37,8 +39,51 @@
   --font-acento: var(--font-lora);
 }
 
+/* Animaciones: cada --animate-nombre crea la clase animate-nombre */
+@theme {
+  --animate-mecer: mecer 4s ease-in-out infinite;
+  --animate-titilar: titilar 3s ease-in-out infinite;
+  --animate-deriva: deriva 90s linear infinite;
+
+  /* Los banderines se mecen de lado a lado */
+  @keyframes mecer {
+    0%,
+    100% {
+      transform: rotate(-4deg);
+    }
+    50% {
+      transform: rotate(4deg);
+    }
+  }
+
+  /* Las estrellas se apagan y se prenden */
+  @keyframes titilar {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  /* El cielo se corre hacia la izquierda (la mitad de su ancho) y vuelve a empezar */
+  @keyframes deriva {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/* Recorta un elemento en forma de triángulo (banderín) */
+@utility banderin {
+  clip-path: polygon(4% 0, 96% 0, 50% 100%);
+}
+
 body {
   background: var(--color-noche-900);
   color: white;
-
 }
