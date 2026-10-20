@@ -19,6 +19,7 @@ const VISTA_POR_ROL: Record<Rol, string> = {
     caja: "/caja",
 };
 
+
 export function LoginForm() {
     const router = useRouter();
     const [paso, setPaso] = useState(1);
@@ -30,11 +31,11 @@ export function LoginForm() {
         e.preventDefault();
         const correo = String(new FormData(e.currentTarget).get("email"));
         const respuesta = await consultarEmail(correo);
-        if (!respuesta.existe) {
+        if (!respuesta.ok) {
             await enviarCodigo(correo);
         }
         setEmail(correo);
-        setExiste(respuesta.existe);
+        setExiste(respuesta.ok ? respuesta.data : false);
         setPaso(2);
     }
 
@@ -46,7 +47,7 @@ export function LoginForm() {
             setError("La contraseña no es correcta");
             return;
         }
-        router.push(VISTA_POR_ROL[respuesta.rol]);
+        router.push(VISTA_POR_ROL[respuesta.rol as Rol]);
     }
 
     async function comprobarCodigo(e: React.SubmitEvent<HTMLFormElement>) {
