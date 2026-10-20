@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+    paths: ['backend/**', '.github/workflows/ci.yml']
+  pull_request:
+    branches: [develop, main]
+    paths: ['backend/**', '.github/workflows/ci.yml']
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # prisma.config.ts reads DATABASE_URL via env(); generate needs it set
+      DATABASE_URL: postgresql://user:pass@localhost:5432/ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+      # Needs DATABASE_URL and DBDOCS_TOKEN repo secrets; push only (no secrets on fork PRs)
+      - name: Generate DBML from database
+        if: github.event_name == 'push'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx -y -p @dbml/cli db2dbml postgres "$DATABASE_URL" -o database.dbml
+      - name: Update dbdocs project
+        if: github.event_name == 'push'
+        env:
+          DBDOCS_TOKEN: ${{ secrets.DBDOCS_TOKEN }}
+        run: npx -y dbdocs build database.dbml --project PH-ADMIN

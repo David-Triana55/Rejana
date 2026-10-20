@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  @@map("roles")
+  
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  auths Auth[]
+}
+
+model Auth {
+  @@map("auths")
+
+  id           String @id @default(uuid())
+  email        String @unique
+  passwordHash String?@map("password_hash")
+  roleId       Int    @map("role_id")
+  role         Role   @relation(fields: [roleId], references: [id])
+  admin        Admin?
+  employee     Employee?
+}
+
+model Admin {
+  @@map("admins")
+
+  id   String  @id
+  name String?
+  auth Auth    @relation(fields: [id], references: [id])
+}
+
+model Employee {
+  @@map("employees")
+
+  id   String  @id
+  name String?
+  auth Auth    @relation(fields: [id], references: [id])
+}

@@ -1,0 +1,39 @@
+info:
+  name: login
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{ApiUrl}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "andresRejon@gmail.com",
+        "password": "073tqyoo"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const setCookie = res.headers['set-cookie'];
+        const server = res.headers['server']
+
+        console.log(res.headers)
+
+        const serverName = 'railway-hikari'
+
+        if (setCookie && server == serverName) {
+          const token = setCookie[0].split(';')[0].split('=')[1];
+          bru.setVar('token', `token=${token}`);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
