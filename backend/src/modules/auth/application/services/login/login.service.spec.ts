@@ -4,6 +4,7 @@ import { LoggerPort } from '../../../../../shared/domain/ports/out/logger.port.j
 import { Role } from '../../../../../shared/domain/enums/role.js';
 import { AuthRepository } from '../../../domain/ports/out/auth.repository.js';
 import { PasswordHasherPort } from '../../../domain/ports/out/password-hasher.port.js';
+import { RefreshTokenHasherPort } from '../../../domain/ports/out/refresh-token-hasher.port.js';
 import { TokenPort } from '../../../domain/ports/out/token.port.js';
 import { Auth } from '../../../domain/entities/auth.entity.js';
 import { InvalidCredentialsError } from '../../../domain/errors/invalid-credentials.error.js';
@@ -12,6 +13,7 @@ describe('LoginService', () => {
   let authRepository: Mocked<AuthRepository>;
   let passwordHasher: Mocked<PasswordHasherPort>;
   let tokenPort: Mocked<TokenPort>;
+  let refreshHasher: Mocked<RefreshTokenHasherPort>;
   let logger: Mocked<LoggerPort>;
   let service: LoginService;
 
@@ -21,6 +23,8 @@ describe('LoginService', () => {
   beforeEach(() => {
     authRepository = {
       findByEmail: vi.fn(),
+      saveRefreshTokenHash: vi.fn(),
+      rotateRefreshTokenHash: vi.fn(),
       Create: vi.fn(),
     };
     passwordHasher = {
@@ -29,20 +33,24 @@ describe('LoginService', () => {
     };
     tokenPort = {
       sign: vi.fn(),
+      signRefresh: vi.fn(),
+      verifyRefresh: vi.fn(),
       verify: vi.fn(),
     };
+    refreshHasher = { hash: vi.fn().mockReturnValue('refresh-hash') };
     logger = {
       log: vi.fn(),
       warn: vi.fn(),
       error: vi.fn(),
     };
-    service = new LoginService(authRepository, passwordHasher, tokenPort, logger);
+    service = new LoginService(authRepository, passwordHasher, tokenPort, refreshHasher, logger);
   });
 
   it('returns token, name and role when credentials are valid', async () => {
     authRepository.findByEmail.mockResolvedValue(user);
     passwordHasher.compare.mockResolvedValue(true);
     tokenPort.sign.mockResolvedValue('jwt-token');
+    tokenPort.signRefresh.mockResolvedValue('refresh-token');
 
     const result = await service.execute(dto);
 
@@ -52,8 +60,14 @@ describe('LoginService', () => {
       email: dto.email,
       role: Role.Admin,
     });
+    expect(refreshHasher.hash).toHaveBeenCalledWith('refresh-token');
+    expect(authRepository.saveRefreshTokenHash).toHaveBeenCalledWith(
+      'user-id',
+      'refresh-hash',
+    );
     expect(result).toEqual({
       accessToken: 'jwt-token',
+      refreshToken: 'refresh-token',
       name: 'Admin',
       role: Role.Admin,
     });
@@ -65,6 +79,7 @@ describe('LoginService', () => {
     );
     passwordHasher.compare.mockResolvedValue(true);
     tokenPort.sign.mockResolvedValue('jwt-token');
+    tokenPort.signRefresh.mockResolvedValue('refresh-token');
 
     const result = await service.execute(dto);
 

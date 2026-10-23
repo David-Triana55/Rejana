@@ -14,6 +14,8 @@ describe('CreateUserService', () => {
   beforeEach(() => {
     authRepository = {
       findByEmail: vi.fn(),
+      saveRefreshTokenHash: vi.fn(),
+      rotateRefreshTokenHash: vi.fn(),
       Create: vi.fn(),
     };
     passwordHasher = {

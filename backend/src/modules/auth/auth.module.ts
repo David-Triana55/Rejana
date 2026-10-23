@@ -3,6 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { PASSWORD_HASHER } from './domain/ports/out/password-hasher.port.js';
 import { AUTH_REPOSITORY } from './domain/ports/out/auth.repository.js';
+import { REFRESH_TOKEN_HASHER } from './domain/ports/out/refresh-token-hasher.port.js';
+import { Sha256RefreshTokenHasherAdapter } from './infrastructure/adapters/out/hashing/sha256-refresh-token-hasher.adapter.js';
+import { LogoutService } from './application/services/logout/logout.service.js';
 import { TOKEN_PORT } from './domain/ports/out/token.port.js';
 import { AuthController } from './infrastructure/adapters/in/http/auth.controller.js';
 import { PrismaAuthRepository } from './infrastructure/adapters/out/persistence/prisma-auth.repository.js';
@@ -10,9 +13,11 @@ import { BcryptPasswordHasherAdapter } from './infrastructure/adapters/out/hashi
 import { JwtTokenAdapter } from './infrastructure/adapters/out/token/jwt-token.adapter.js';
 import { CreateUserService } from './application/services/create-user/create-user.service.js';
 import { LoginService } from './application/services/login/login.service.js';
+import { RefreshTokenService } from './application/services/refresh-token/refresh-token.service.js';
 
 @Module({
   imports: [
+    ConfigModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -30,8 +35,11 @@ import { LoginService } from './application/services/login/login.service.js';
   providers: [
     CreateUserService,
     LoginService,
+    RefreshTokenService,
+    LogoutService,
     { provide: AUTH_REPOSITORY, useClass: PrismaAuthRepository },
     { provide: PASSWORD_HASHER, useClass: BcryptPasswordHasherAdapter },
+    { provide: REFRESH_TOKEN_HASHER, useClass: Sha256RefreshTokenHasherAdapter },
     { provide: TOKEN_PORT, useClass: JwtTokenAdapter },
   ],
   exports: [TOKEN_PORT, CreateUserService],

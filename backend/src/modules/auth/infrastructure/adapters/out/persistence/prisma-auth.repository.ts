@@ -27,6 +27,25 @@ export class PrismaAuthRepository implements AuthRepository {
     );
   }
 
+  async saveRefreshTokenHash(id: string, hash: string | null): Promise<void> {
+    await this.prisma.client.auth.update({
+      where: { id },
+      data: { refreshTokenHash: hash },
+    });
+  }
+
+  async rotateRefreshTokenHash(
+    id: string,
+    current: string,
+    next: string,
+  ): Promise<boolean> {
+    const { count } = await this.prisma.client.auth.updateMany({
+      where: { id, refreshTokenHash: current },
+      data: { refreshTokenHash: next },
+    });
+    return count === 1;
+  }
+
   async Create(auth: Auth): Promise<void> {
     await this.prisma.client.auth.create({
       data: {

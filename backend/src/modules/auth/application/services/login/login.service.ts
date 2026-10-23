@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { AUTH_REPOSITORY, type AuthRepository } from "../../../domain/ports/out/auth.repository.js";
 import { PASSWORD_HASHER,type PasswordHasherPort } from "../../../domain/ports/out/password-hasher.port.js";
+import { REFRESH_TOKEN_HASHER, type RefreshTokenHasherPort } from "../../../domain/ports/out/refresh-token-hasher.port.js";
 import { TOKEN_PORT, type TokenPort } from "../../../domain/ports/out/token.port.js";
 import { LOGGER_PORT, type LoggerPort } from "../../../../../shared/domain/ports/out/logger.port.js";
 import { LoginDto } from "../../dto/login.dto.js";
@@ -14,6 +15,8 @@ export class LoginService {
     @Inject(PASSWORD_HASHER)
     private readonly passwordHasher: PasswordHasherPort,
     @Inject(TOKEN_PORT) private readonly tokenPort: TokenPort,
+    @Inject(REFRESH_TOKEN_HASHER)
+    private readonly refreshHasher: RefreshTokenHasherPort,
     @Inject(LOGGER_PORT) private readonly logger: LoggerPort,
   ) {}
 
@@ -31,16 +34,22 @@ export class LoginService {
       throw new InvalidCredentialsError();
     }
 
-    const accessToken = await this.tokenPort.sign({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    });
+    const claims = { sub: user.id, email: user.email, role: user.role };
+
+    const accessToken = await this.tokenPort.sign(claims);
+
+    const refreshToken = await this.tokenPort.signRefresh(claims);
+
+    await this.authRepo.saveRefreshTokenHash(
+      user.id,
+      this.refreshHasher.hash(refreshToken),
+    );
 
     this.logger.log(`User ${user.id} logged in`, 'LoginUseCase');
 
     return {
-      accessToken: accessToken,
+      accessToken,
+      refreshToken,
       name: user.name ?? null,
       role: user.role,
     };
