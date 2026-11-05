@@ -1,14 +1,14 @@
-import { Bombillas } from "@/components/ui/Bombillas";
-import { Estrellas } from "@/components/ui/Estrellas";
-import { Guirnalda } from "@/components/ui/Guirnalda";
+import { Lights } from "@/components/ui/Lights";
+import { Stars } from "@/components/ui/Stars";
+import { Garland } from "@/components/ui/Garland";
 
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative isolate min-h-dvh overflow-hidden bg-linear-to-b from-noche-950 via-noche-900 to-noche-800">
-      <Estrellas />
-      <Guirnalda />
-      <Bombillas />
+    <div className="relative isolate min-h-dvh overflow-hidden bg-linear-to-b from-night-950 via-night-900 to-night-800">
+      <Stars />
+      <Garland />
+      <Lights />
       {children}
     </div>
   );

@@ -1,6 +1,6 @@
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-// Mismo formato que devuelve DomainErrorFilter del backend.
+// Same shape returned by the backend's DomainErrorFilter.
 export type ApiError = {
   status: number;
   code: string;
@@ -16,7 +16,7 @@ export type ApiRequestOptions = {
   method?: HttpMethod;
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined>;
-  // Reenvía la cookie `token` del usuario al backend. Default: true.
+  // Forwards the user's `token` cookie to the backend. Default: true.
   auth?: boolean;
   headers?: Record<string, string>;
   signal?: AbortSignal;

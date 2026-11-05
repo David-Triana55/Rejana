@@ -1,145 +1,73 @@
 "use client";
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Progreso } from "@/components/ui/Progreso";
-import { consultarEmail, enviarCodigo, iniciarSesion, registrar, verificarCodigo } from "../services/auth";
-import type { Rol } from "../types";
+import { useState } from "react";
+import { login } from "../services/auth";
+import type { Role } from "../types";
 import { AppleButton } from "./AppleButton";
-import { CodigoInput } from "./CodigoInput";
 import { GoogleButton } from "./GoogleButton";
 
-const CAMPO = "w-full rounded-full border-2 border-tinta bg-white px-4 py-3 text-left";
-const BOTON = "w-full rounded-full border-2 border-tinta bg-turquesa px-4 py-3 font-semibold text-tinta shadow-sticker-sm transition hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none";
+const FIELD_CLASSES = "w-full rounded-full border-2 border-ink bg-white px-4 py-3 text-left";
+const BUTTON_CLASSES = "w-full rounded-full border-2 border-ink bg-turquoise px-4 py-3 font-semibold text-ink shadow-sticker-sm transition hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none";
 
-const VISTA_POR_ROL: Record<Rol, string> = {
-    cliente: "/cliente",
+const ROLE_ROUTES: Record<Role, string> = {
+    customer: "/customer",
     admin: "/admin",
-    mesero: "/mesero",
-    cocina: "/cocina",
-    caja: "/caja",
+    waiter: "/waiter",
+    chef: "/chef",
+    cashier: "/cashier",
 };
 
 
 export function LoginForm() {
     const router = useRouter();
-    const [paso, setPaso] = useState(1);
-    const [email, setEmail] = useState("");
-    const [existe, setExiste] = useState(false);
     const [error, setError] = useState("");
 
-    async function enviarEmail(e: React.SubmitEvent<HTMLFormElement>) {
+    async function doLogin(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
-        const correo = String(new FormData(e.currentTarget).get("email"));
-        const respuesta = await consultarEmail(correo);
-        if (!respuesta.ok) {
-            await enviarCodigo(correo);
-        }
-        setEmail(correo);
-        setExiste(respuesta.ok ? respuesta.data : false);
-        setPaso(2);
-    }
-
-    async function entrar(e: React.SubmitEvent<HTMLFormElement>) {
-        e.preventDefault();
-        const contrasena = String(new FormData(e.currentTarget).get("contrasena"));
-        const respuesta = await iniciarSesion(email, contrasena);
-        if (!respuesta.valido || !respuesta.rol) {
-            setError("La contraseña no es correcta");
+        const form = new FormData(e.currentTarget);
+        const email = String(form.get("email"));
+        const password = String(form.get("password"));
+        const result = await login(email, password);
+        if (!result.valid || !result.role) {
+            setError("El email o la contraseña no son correctos");
             return;
         }
-        router.push(VISTA_POR_ROL[respuesta.rol as Rol]);
-    }
-
-    async function comprobarCodigo(e: React.SubmitEvent<HTMLFormElement>) {
-        e.preventDefault();
-        const codigo = String(new FormData(e.currentTarget).get("codigo"));
-        const respuesta = await verificarCodigo(email, codigo);
-        if (!respuesta.valido) {
-            setError("El código no es correcto");
-            return;
-        }
-        setError("");
-        setPaso(3);
-    }
-
-    async function crearCuenta(e: React.SubmitEvent<HTMLFormElement>) {
-        e.preventDefault();
-        const datos = new FormData(e.currentTarget);
-        if (datos.get("contrasena") !== datos.get("confirmacion")) {
-            setError("Las contraseñas no coinciden");
-            return;
-        }
-        const respuesta = await registrar({ email, contrasena: String(datos.get("contrasena")) });
-        router.push(VISTA_POR_ROL[respuesta.rol]);
+        router.push(ROLE_ROUTES[result.role as Role]);
     }
 
     return (
         <div className="flex flex-col gap-3">
-            <Progreso paso={paso} />
+            <form onSubmit={doLogin} className="flex flex-col gap-3">
+                <input type="email" name="email" placeholder="ingresa tu email" required className={FIELD_CLASSES} />
+                <input type="password" name="password" autoComplete="current-password" placeholder="contraseña" required className={FIELD_CLASSES} />
+                <Link href="/forgot-password" className="self-end text-xs text-ink-soft underline-offset-2 hover:underline">
+                    ¿Olvidaste tu contraseña?
+                </Link>
+                <button type="submit" className={BUTTON_CLASSES}>
+                    Entrar
+                </button>
+            </form>
 
-            {paso === 1 && (
-                <form onSubmit={enviarEmail} className="flex flex-col gap-3">
-                    <input type="email" name="email" placeholder="ingresa tu email" required className={CAMPO} />
-                    <button type="submit" className={BOTON}>
-                        Ingresar
-                    </button>
-                </form>
-            )}
+            {error && <p className="text-sm text-red-600">{error}</p>}
 
-            {paso === 2 && existe && (
-                <form onSubmit={entrar} className="flex flex-col gap-3">
-                    <p className="text-sm text-tinta-soft">
-                        Hola de nuevo, <strong>{email}</strong>
-                    </p>
-                    <input type="password" name="contrasena" autoComplete="current-password" placeholder="contraseña" required autoFocus className={CAMPO} />
-                    <button type="submit" className={BOTON}>
-                        Entrar
-                    </button>
-                </form>
-            )}
+            <div className="my-3 flex items-center gap-3 text-sm text-ink-soft">
+                <span className="h-0.5 flex-1 bg-ink/20" />
+                o continúa con
+                <span className="h-0.5 flex-1 bg-ink/20" />
+            </div>
+            
+            <div className="flex justify-center gap-3">
+                <GoogleButton onClick={() => router.push("/auth/google")} /> 
+                <AppleButton onClick={() => router.push("/auth/apple")} />
+            </div>
 
-            {paso === 2 && !existe && (
-                <form onSubmit={comprobarCodigo} className="flex flex-col gap-3">
-                    <p className="text-sm text-tinta-soft">
-                        Te enviamos un código a <strong>{email}</strong>
-                    </p>
-                    <CodigoInput />
-                    <button type="submit" className={BOTON}>
-                        Verificar
-                    </button>
-                </form>
-            )}
-
-            {paso === 3 && (
-                <form onSubmit={crearCuenta} className="flex flex-col gap-3">
-                    <input type="password" name="contrasena" autoComplete="new-password" placeholder="contraseña" required autoFocus className={CAMPO} />
-                    <input type="password" name="confirmacion" autoComplete="new-password" placeholder="confirma tu contraseña" required className={CAMPO} />
-                    <button type="submit" className={BOTON}>
-                        Crear cuenta
-                    </button>
-                </form>
-            )}
-
-            {error && <p className="text-sm text-rojo-600">{error}</p>}
-
-            {paso === 1 && (
-                <>
-                    <div className="my-3 flex items-center gap-3 text-sm text-tinta-soft">
-                        <span className="h-0.5 flex-1 bg-tinta/20" />
-                        o continúa con
-                        <span className="h-0.5 flex-1 bg-tinta/20" />
-                    </div>
-                    {/* Endpoints reales: GET http://localhost:3001/auth/google y GET /auth/apple. Son
-                        redirecciones, no fetch: el botón vuelve a ser un <a href> a esa dirección y el
-                        backend revisa si el correo ya está registrado: si sí, devuelve al usuario a la vista
-                        de su rol; si no, lo crea como cliente y lo devuelve a /cliente.
-                        Mock: el clic simula un cliente que entró bien y va directo a /cliente. */}
-                    <div className="flex justify-center gap-3">
-                        <GoogleButton onClick={() => router.push("/cliente")} />
-                        <AppleButton onClick={() => router.push("/cliente")} />
-                    </div>
-                </>
-            )}
+            <p className="text-sm text-ink-soft">
+                ¿No tienes cuenta?{" "}
+                <Link href="/register" className="font-semibold text-ink underline-offset-2 hover:underline">
+                    Crear cuenta
+                </Link>
+            </p>
         </div>
     );
 }

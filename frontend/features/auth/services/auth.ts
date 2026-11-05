@@ -1,57 +1,63 @@
 "use server";
 
 import { apiRequest } from "@/lib/api";
-import type { Rol } from "../types";
+import type { Role } from "../types";
 
-const USUARIOS_REGISTRADOS: { email: string; contrasena: string; rol: Rol }[] = [
-  { email: "admin@rejana.com", contrasena: "rejana123", rol: "admin" },
-  { email: "mesero@rejana.com", contrasena: "rejana123", rol: "mesero" },
-  { email: "cliente@rejana.com", contrasena: "rejana123", rol: "cliente" },
+const REGISTERED_USERS: { email: string; password: string; role: Role }[] = [
+  { email: "admin@rejana.com", password: "rejana123", role: "admin" },
+  { email: "mesero@rejana.com", password: "rejana123", role: "waiter" },
+  { email: "cliente@rejana.com", password: "rejana123", role: "customer" },
 ];
-const CODIGO_CORRECTO = "123456";
+const CORRECT_CODE = "123456";
 
-type DatosRegistro = {
+type RegistrationData = {
   email: string;
-  contrasena: string;
+  password: string;
 };
 
-type Responselogin = {
+type LoginResponse = {
   name: string | null;
   role: string;
 };
 
-type requestLogin = {
+type LoginRequest = {
   email: string;
   password: string;
 };
 
 
-export async function consultarEmail(email: string) {
+export async function checkEmail(email: string) {
   return await apiRequest<boolean>("/auth/email", { method: "POST", body: { email } });
 }
 
-export async function iniciarSesion(email: string, contrasena: string) {
-  const res = await apiRequest<Responselogin>("/auth/login", {
+export async function login(email: string, password: string) {
+  const res = await apiRequest<LoginResponse>("/auth/login", {
     method: "POST",
-    body: { email, password: contrasena } as requestLogin,
+    body: { email, password } as LoginRequest,
     auth: false,
   });
-  if (!res.ok) return { valido: false as const, error: res.error.message };
-  return { valido: true as const, rol: res.data.role };
+  if (!res.ok) return { valid: false as const, error: res.error.message };
+  return { valid: true as const, role: res.data.role };
 }
 
-// POST /auth/email/codigo — body { email }. El backend manda un código al correo (solo correos nuevos).
-export async function enviarCodigo(email: string) {
-  return console.info(`[mock] Código para ${email}: ${CODIGO_CORRECTO}`);
+// POST /auth/email/codigo — body { email }. The backend sends a code to the email (new emails only).
+export async function sendCode(email: string) {
+  console.info(`[mock] Code for ${email}: ${CORRECT_CODE}`);
 }
 
-export async function verificarCodigo(email: string, codigo: string) {
-  return console.info(`[mock] Verificando código de ${email}`);
+export async function verifyCode(email: string, code: string) {
+  console.info(`[mock] Verifying code for ${email}`);
+  return { valid: code === CORRECT_CODE };
 }
 
-// POST /auth/registro — body { email, contrasena } → { rol }. Crea la cuenta de un cliente (los empleados los crea el admin).
-export async function registrar(datos: DatosRegistro): Promise<{ rol: Rol }> {
-  const rol: Rol = "cliente";
-  USUARIOS_REGISTRADOS.push({ ...datos, rol });
-  return { rol };
+// POST /auth/registro — body { email, contrasena } → { rol }. Creates a customer account (employees are created by the admin).
+export async function register(data: RegistrationData): Promise<{ role: Role }> {
+  const role: Role = "customer";
+  REGISTERED_USERS.push({ ...data, role });
+  return { role };
+}
+
+// POST /auth/password/olvide — body { email }. Sends a reset link only if the email is registered.
+export async function requestPasswordReset(email: string) {
+  console.info(`[mock] Password reset link for ${email}`);
 }

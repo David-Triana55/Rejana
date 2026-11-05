@@ -3,50 +3,50 @@
 
 
 @theme inline {
-  --color-noche-900: #0b0f2b;
-  --color-noche-950: #060920;
-  --color-noche-800: #121842;
-  --color-noche-700: #1b2358;
-  --color-noche-600: #27306f;
-  --color-noche-300: #a3a8d1;
-  --color-tinta: #14121f;
-  --color-tinta-soft: #4a4658;
-  --color-crema-50: #fffcf5;
-  --color-crema-100: #fff8ec;
-  --color-crema: #fbf4e6;
-  --color-crema-200: #f2e7cf;
-  --color-crema-300: #e4d3b0;
-  --color-crema-400: #c9b48c;
-  --color-rosa: #e8237d;
-  --color-amarillo: #ffc93c;
-  --color-turquesa: #26bfa9;
-  --color-morado: #6f3fc0;
-  --color-naranja: #f7801e;
-  --color-azul:#2156d8;
-  --color-rojo:#e5533d;
-  --color-amarillo-100: #fff3cf;
-  --color-rosa-100: #fde3ef;
-  --color-rosa-600: #c4126a;
-  --color-rojo-100: #fde2dc;
-  --color-rojo-600: #bf3622;
-  --shadow-sticker: 4px 4px 0 0 var(--color-tinta);
-  --shadow-sticker-sm: 2px 2px 0 0 var(--color-tinta);
-  --shadow-brillo: 0 0 10px 3px var(--color-amarillo);
+  --color-night-900: #0b0f2b;
+  --color-night-950: #060920;
+  --color-night-800: #121842;
+  --color-night-700: #1b2358;
+  --color-night-600: #27306f;
+  --color-night-300: #a3a8d1;
+  --color-ink: #14121f;
+  --color-ink-soft: #4a4658;
+  --color-cream-50: #fffcf5;
+  --color-cream-100: #fff8ec;
+  --color-cream: #fbf4e6;
+  --color-cream-200: #f2e7cf;
+  --color-cream-300: #e4d3b0;
+  --color-cream-400: #c9b48c;
+  --color-pink: #e8237d;
+  --color-yellow: #ffc93c;
+  --color-turquoise: #26bfa9;
+  --color-purple: #6f3fc0;
+  --color-orange: #f7801e;
+  --color-blue:#2156d8;
+  --color-red:#e5533d;
+  --color-yellow-100: #fff3cf;
+  --color-pink-100: #fde3ef;
+  --color-pink-600: #c4126a;
+  --color-red-100: #fde2dc;
+  --color-red-600: #bf3622;
+  --shadow-sticker: 4px 4px 0 0 var(--color-ink);
+  --shadow-sticker-sm: 2px 2px 0 0 var(--color-ink);
+  --shadow-glow: 0 0 10px 3px var(--color-yellow);
 }
 
 @theme inline {
   --font-sans:   var(--font-poppins);
-  --font-acento: var(--font-lora);
+  --font-accent: var(--font-lora);
 }
 
-/* Animaciones: cada --animate-nombre crea la clase animate-nombre */
+/* Animations: each --animate-name creates the animate-name class */
 @theme {
-  --animate-mecer: mecer 4s ease-in-out infinite;
-  --animate-titilar: titilar 3s ease-in-out infinite;
-  --animate-deriva: deriva 90s linear infinite;
+  --animate-sway: sway 4s ease-in-out infinite;
+  --animate-twinkle: twinkle 3s ease-in-out infinite;
+  --animate-drift: drift 90s linear infinite;
 
-  /* Los banderines se mecen de lado a lado */
-  @keyframes mecer {
+  /* The pennants sway side to side */
+  @keyframes sway {
     0%,
     100% {
       transform: rotate(-4deg);
@@ -56,8 +56,8 @@
     }
   }
 
-  /* Las estrellas se apagan y se prenden */
-  @keyframes titilar {
+  /* The stars fade out and in */
+  @keyframes twinkle {
     0%,
     100% {
       opacity: 1;
@@ -67,8 +67,8 @@
     }
   }
 
-  /* El cielo se corre hacia la izquierda (la mitad de su ancho) y vuelve a empezar */
-  @keyframes deriva {
+  /* The sky slides to the left (half its width) and loops */
+  @keyframes drift {
     from {
       transform: translateX(0);
     }
@@ -78,12 +78,12 @@
   }
 }
 
-/* Recorta un elemento en forma de triángulo (banderín) */
-@utility banderin {
+/* Clips an element into a triangle (pennant flag) */
+@utility pennant {
   clip-path: polygon(4% 0, 96% 0, 50% 100%);
 }
 
 body {
-  background: var(--color-noche-900);
+  background: var(--color-night-900);
   color: white;
 }

@@ -1,14 +1,14 @@
 import { cookies } from "next/headers";
 import type { ApiError, ApiRequestOptions, ApiResult } from "./types";
 
-// Solo para servidor (Server Actions, Server Components, Route Handlers).
-// Esto NO es una Server Action: no lleva "use server" para no exponerlo como endpoint.
+// Server-only (Server Actions, Server Components, Route Handlers).
+// This is NOT a Server Action: it has no "use server" so it isn't exposed as an endpoint.
 
 const AUTH_COOKIE = "token";
 
 function getBaseUrl() {
   const url = process.env.API_URL;
-  if (!url) throw new Error("Falta la variable de entorno API_URL");
+  if (!url) throw new Error("Missing API_URL environment variable");
   return url.replace(/\/$/, "");
 }
 
@@ -20,7 +20,7 @@ function buildUrl(path: string, query: ApiRequestOptions["query"]) {
   return url;
 }
 
-// El backend setea la cookie de sesión en SU respuesta; hay que pasarla al navegador.
+// The backend sets the session cookie on ITS response; it needs to be relayed to the browser.
 async function relaySetCookies(res: Response) {
   const store = await cookies();
   for (const raw of res.headers.getSetCookie()) {
@@ -58,7 +58,7 @@ async function parseBody(res: Response): Promise<unknown> {
 function toApiError(status: number, body: unknown): ApiError {
   if (body && typeof body === "object") {
     const b = body as Record<string, unknown>;
-    // Nest ValidationPipe devuelve message: string[]
+    // Nest ValidationPipe returns message: string[]
     const message = Array.isArray(b.message) ? b.message.join(", ") : b.message;
     return {
       status,
